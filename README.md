@@ -1,104 +1,78 @@
 # Self-Evolving Memory
 
-**A memory skill that helps AI agents learn from corrections.**
+**A local-first memory improvement workflow for long-running AI agents.**
 
-Most AI agents can save notes. The harder problem is what happens when the agent gets memory wrong.
+Self-Evolving Memory helps agents turn user corrections into durable memory improvements. Instead of simply saying "got it" and moving on, an agent can diagnose what went wrong, update memory deliberately, and preserve the reason for the change.
 
-It may forget something you already said. It may remember an old fact. It may treat a one-time instruction as a permanent rule. It may even have the right memory but fail to use it.
+The goal is simple:
 
-Self-Evolving Memory is designed for that moment.
+> Stop teaching your agent the same thing twice.
 
-## The Idea
+## Overview
 
-When you correct an agent, it should not only fix the current answer.
+Most agent memory systems focus on storing more information. Self-Evolving Memory focuses on improving memory quality.
 
-It should also ask:
+It is designed for situations where an agent:
 
-- What did I get wrong?
-- Was my memory missing, stale, too broad, or ignored?
-- What should change so I do better next time?
-- Why is this change justified?
+- forgets something the user already explained,
+- remembers an outdated fact,
+- applies a preference too broadly,
+- ignores relevant memory that already exists,
+- updates memory without a clear reason,
+- accumulates messy notes over time.
 
-Then it updates memory in a way that can be inspected later.
+This project provides a portable skill and a small local helper script that give agents a repeatable memory-update discipline.
 
-In short:
+## Core Workflow
 
-> Every correction should make the agent better.
+When feedback arrives, the agent should not immediately overwrite memory.
 
-## Why It Matters
+It should follow a small loop:
 
-Good agent memory is not just about storage. It is about trust.
+```text
+observe feedback -> diagnose memory issue -> propose change -> apply carefully -> record why
+```
 
-Users want agents that:
+This makes memory changes:
 
-- stop making the same mistake,
-- remember stable preferences,
-- forget or downgrade stale facts,
-- explain why memory changed,
-- avoid turning every small correction into a permanent rule.
+- **deliberate**: the agent identifies the type of memory problem first,
+- **explainable**: the reason for the update is preserved,
+- **auditable**: changes are recorded instead of hidden,
+- **reversible**: bad memory updates can be inspected and corrected,
+- **safer**: one-off feedback is less likely to become an overbroad rule.
 
-Self-Evolving Memory gives the agent a simple discipline for doing that.
+## Example
 
-## What It Helps With
-
-This skill is useful when an agent says or implies:
-
-> "I forgot."  
-> "I remembered the wrong thing."  
-> "I used an outdated fact."  
-> "I over-applied your preference."  
-> "I had the context, but did not use it."
-
-Instead of treating those as one-off mistakes, the agent treats them as memory problems to diagnose and improve.
-
-## A Simple Example
-
-You tell an agent:
+A user says:
 
 > "No, that is not a candidate room. Always send those updates to this exact room."
 
-A normal agent may say:
+A normal agent may only fix the current response.
 
-> "Got it."
-
-But it may still forget later.
-
-With Self-Evolving Memory, the agent should record the correction as a memory improvement:
+Self-Evolving Memory encourages the agent to treat the correction as a memory improvement:
 
 - the old memory was unclear,
 - the user confirmed the final rule,
-- future behavior should use the confirmed rule,
-- the reason for the change is preserved.
+- future behavior should follow the confirmed rule,
+- the reason for the change should be recorded.
 
-That is the difference between remembering words and improving behavior.
+That is the difference between saving notes and improving behavior.
 
-## How It Works
-
-The skill teaches the agent a small loop:
+## What This Project Contains
 
 ```text
-notice feedback -> diagnose the memory issue -> propose a memory change -> apply it carefully -> remember why
+SKILL.md                  # Agent-facing workflow
+scripts/memory_ops.sh     # Local helper for memory events and changes
+references/
+  diagnostics.md          # Memory failure taxonomy
+  schema.md               # Reference data shapes
+  evaluation.md           # Memory evaluation guidance
+agents/openai.yaml        # Skill metadata
 ```
 
-The goal is not to build a giant memory database.
+The skill is the main product. The script is intentionally small and local-first.
 
-The goal is to make memory changes deliberate, explainable, and reversible.
-
-## What Makes It Different
-
-Many memory systems focus on saving more information.
-
-Self-Evolving Memory focuses on improving memory quality.
-
-It helps the agent decide:
-
-- what should be remembered,
-- what should stay temporary,
-- what should be corrected,
-- what should be marked stale,
-- what skill or workflow caused the memory mistake.
-
-## Who It Is For
+## Use Cases
 
 Self-Evolving Memory is useful for long-running agents such as:
 
@@ -107,27 +81,64 @@ Self-Evolving Memory is useful for long-running agents such as:
 - monitoring bots,
 - customer support agents,
 - project copilots,
-- team coordination agents.
+- team coordination agents,
+- agent frameworks with persistent memory.
 
-It is especially useful when the same user works with the same agent over time.
+It is especially useful when the same user or team works with the same agent over time.
 
-## The Promise
+## Design Principles
 
-**Stop teaching your agent the same thing twice.**
+### Memory should improve from correction
 
-Every correction should become part of the agent's learning process.
+Every meaningful correction is a chance to improve future behavior, not just fix the current answer.
+
+### Memory should be explainable
+
+Users and developers should be able to understand why a memory changed.
+
+### Memory should not grow blindly
+
+The agent should distinguish stable preferences from temporary instructions, stale facts, and weak signals.
+
+### Memory should be local and inspectable
+
+The current implementation uses local files. There is no server, daemon, telemetry, or external API.
+
+### Memory workflows can evolve too
+
+Sometimes the problem is not a single memory item. It may be the retrieval policy, the storage shape, or the skill workflow itself.
+
+## Installation
+
+Install this repository as a Codex/OpenAI-style skill by copying it into your skills directory and restarting the agent runtime.
+
+For direct use, the helper script requires:
+
+- POSIX shell
+- `jq`
 
 ## Privacy
 
-This project is local-first. It does not need a server or external API.
+Self-Evolving Memory is local-first and does not send data to external services.
 
-Memory can still contain private information, so treat memory files as private unless you review them.
+Memory can still contain private information. Treat memory files as private unless you have reviewed them.
+
+## Roadmap
+
+Planned directions:
+
+- memory review reports,
+- conflict detection,
+- stale memory cleanup,
+- richer memory evaluation examples,
+- skill-level self-improvement patterns,
+- integrations with common agent memory stores.
 
 ## Status
 
 Early and practical.
 
-The current version is a skill plus a small local helper script. The main value is the workflow: helping agents improve memory from real feedback instead of silently accumulating messy notes.
+The current version focuses on the workflow: helping agents improve memory from real feedback instead of silently accumulating messy notes.
 
 ## License
 
