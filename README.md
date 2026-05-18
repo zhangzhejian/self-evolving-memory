@@ -6,6 +6,14 @@ Self-Evolving Memory gives long-running agents a disciplined way to update memor
 
 > Stop teaching your agent the same thing twice.
 
+## Quick Start
+
+Send this repository to an agent that supports skill installation:
+
+> Install this skill: https://github.com/zhangzhejian/self-evolving-memory
+
+The agent should fetch the repository, install it into its skills directory, and reload or restart so the skill can be discovered.
+
 ## Why This Exists
 
 Agent memory often fails in subtle ways. An agent may remember an old fact, apply a preference too broadly, ignore a relevant memory, or keep accumulating notes without knowing which ones are still useful.
@@ -58,14 +66,6 @@ agents/openai.yaml        # Skill metadata
 ```
 
 The skill is the main product. The helper script is intentionally small, transparent, and local-first.
-
-## Installation
-
-Send this repository to an agent that supports skill installation:
-
-> Install this skill: https://github.com/zhangzhejian/self-evolving-memory
-
-The agent should fetch the repository, install it into its skills directory, and reload or restart so the skill can be discovered.
 
 ## Use Cases
 
