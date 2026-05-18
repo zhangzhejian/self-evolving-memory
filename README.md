@@ -110,9 +110,13 @@ Sometimes the problem is not a single memory item. It may be the retrieval polic
 
 ## Installation
 
-Install this repository as a Codex/OpenAI-style skill by copying it into your skills directory and restarting the agent runtime.
+To install the skill, send this GitHub repository to an agent that supports skill installation and ask it to install the skill:
 
-For direct use, the helper script requires:
+> Install this skill: https://github.com/zhangzhejian/self-evolving-memory
+
+The agent should fetch the repository, place it in its skills directory, and reload or restart so the skill can be discovered.
+
+For runtimes that use the bundled helper script directly, the local requirements are:
 
 - POSIX shell
 - `jq`
