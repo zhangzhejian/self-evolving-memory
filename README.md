@@ -1,153 +1,110 @@
 # Self-Evolving Memory
 
-**A local-first MemoryOps skill for AI agents.**
+**A memory skill that helps AI agents learn from corrections.**
 
-Self-Evolving Memory turns every correction into a safer, more useful agent memory update.
-Instead of letting an agent silently overwrite context, it makes memory changes explicit:
+Most agent memory systems can store facts. The hard part is what happens after the agent gets something wrong:
 
-```text
-observe -> diagnose -> propose patch -> validate -> apply -> record outcome
-```
+- it forgot something you already said,
+- it remembered an old fact,
+- it used the wrong preference,
+- it over-learned from one example,
+- it had the right memory but ignored it.
 
-The goal is simple: **stop teaching your agent the same thing twice**.
+Self-Evolving Memory gives agents a simple habit:
 
-## Why
+> When corrected, do not just answer better this time. Fix the memory so the same mistake is less likely next time.
 
-Long-running agents do not just need more memory. They need better memory hygiene.
+## The Promise
 
-Common failure modes:
+**Stop teaching your agent the same thing twice.**
 
-- "I already told you that."
-- "You remembered the wrong room/project/person."
-- "That was true last week, but it is stale now."
-- "You treated one example as a permanent preference."
-- "The right memory existed, but you did not use it."
-- "Your skill workflow keeps writing noisy memories."
-
-Self-Evolving Memory gives agents a disciplined way to handle those failures:
-
-- classify what went wrong,
-- create an evidence-backed patch,
-- validate when needed,
-- apply the change,
-- keep an append-only event and patch trail.
-
-## What It Is
-
-This repository is a portable agent skill plus a shell helper:
+Every correction can become a clean memory update:
 
 ```text
-SKILL.md                  # Skill entry point
-scripts/memory_ops.sh     # File-backed MemoryOps helper
-references/
-  schema.md               # Memory item, event, patch, retrieval policy schemas
-  diagnostics.md          # Memory failure taxonomy and decision rules
-  evaluation.md           # Regression eval patterns for memory changes
-agents/openai.yaml        # UI metadata for skill lists
+user correction -> diagnose the memory problem -> propose a fix -> apply it -> remember why
 ```
 
-It is intentionally small:
+That means the agent's memory becomes:
+
+- easier to trust,
+- easier to inspect,
+- less likely to become a pile of stale notes,
+- better at improving from real feedback.
+
+## A Tiny Example
+
+You tell your agent:
+
+```text
+No, do not treat that room as a candidate. Always send Garry's finance updates to rm_oc_551556d402d68263.
+```
+
+Without this skill, the agent might only fix the current answer.
+
+With this skill, the agent should record:
+
+```text
+Problem: stale or underspecified memory
+Fix: confirmed forwarding room is rm_oc_551556d402d68263
+Evidence: user explicitly confirmed it
+Result: future notifications use the confirmed room
+```
+
+## What Is Included
+
+```text
+SKILL.md                  # The agent-facing workflow
+scripts/memory_ops.sh     # Small shell helper for memory logs and patches
+references/               # Optional deeper guides
+agents/openai.yaml        # Skill metadata
+```
+
+The project is intentionally small:
 
 - local files only,
-- no daemon,
-- no telemetry,
+- no background service,
 - no external API,
-- transparent shell + `jq`,
-- Git-friendly JSONL logs.
-
-## Core Idea
-
-Treat memory like code.
-
-Do not directly mutate long-term memory when a user corrects the agent. Create a patch:
-
-```json
-{
-  "kind": "update_memory",
-  "failure_mode": "stale_memory",
-  "target": "mem_forward_room",
-  "reason": "User confirmed the notification target is final, not a candidate.",
-  "before": "Forward target candidate: rm_oc_...",
-  "after": "Forward all notifications to rm_oc_...",
-  "status": "proposed"
-}
-```
-
-Then verify and apply it.
-
-## Storage Layout
-
-Default store:
-
-```text
-.memory/
-  events.jsonl
-  working.md
-  long_term/
-    profile.md
-    facts.jsonl
-    projects/
-  meta/
-    memory-system.md
-    patches.jsonl
-    retrieval-policy.md
-  evals/
-    cases.jsonl
-    runs.jsonl
-```
+- no telemetry,
+- shell + `jq`,
+- human-readable logs.
 
 ## Install
 
-### Codex / OpenAI-style skills
-
-Copy the skill into your skills directory:
-
-```bash
-cp -R self-evolving-memory ~/.codex/skills/self-evolving-memory
-```
-
-Restart Codex so the skill registry can pick it up.
-
-### From GitHub
+Clone the repo:
 
 ```bash
 git clone https://github.com/zhangzhejian/self-evolving-memory.git
+```
+
+Install as a Codex/OpenAI-style skill:
+
+```bash
 cp -R self-evolving-memory ~/.codex/skills/self-evolving-memory
 ```
 
-### Manual Use Without a Skill Runtime
+Restart Codex so it can load the new skill.
 
-You can use the shell helper directly in any project:
+## Use It Directly
 
-```bash
-sh scripts/memory_ops.sh init --store .memory
-```
+You can also use the shell helper without a skill runtime.
 
-Requires:
-
-- POSIX shell
-- `jq`
-
-## Quick Start
-
-Initialize a memory store:
+Initialize a memory folder:
 
 ```bash
 sh scripts/memory_ops.sh init --store .memory
 ```
 
-Record user feedback:
+Record feedback:
 
 ```bash
 sh scripts/memory_ops.sh event \
   --store .memory \
   --type feedback \
   --source user \
-  --text "User confirmed notifications must go to rm_oc_551556d402d68263." \
-  --tag memory-failure
+  --text "User confirmed the forwarding room."
 ```
 
-Create a memory patch:
+Create a memory fix:
 
 ```bash
 patch_id=$(
@@ -155,14 +112,13 @@ patch_id=$(
     --store .memory \
     --kind add_memory \
     --failure-mode missing_memory \
-    --reason "Need confirmed notification target." \
-    --after "Forward all monitor notifications to rm_oc_551556d402d68263." \
-    --risk low |
+    --reason "Need confirmed forwarding room." \
+    --after "Always forward Garry finance updates to rm_oc_551556d402d68263." |
   jq -r .id
 )
 ```
 
-Apply the patch:
+Apply it:
 
 ```bash
 sh scripts/memory_ops.sh apply \
@@ -171,11 +127,10 @@ sh scripts/memory_ops.sh apply \
   --memory-type policy \
   --scope global \
   --confidence 1 \
-  --validated \
-  --tag notification-target
+  --validated
 ```
 
-Inspect memory:
+Inspect what changed:
 
 ```bash
 sh scripts/memory_ops.sh list facts --store .memory
@@ -183,70 +138,57 @@ sh scripts/memory_ops.sh list patches --store .memory
 sh scripts/memory_ops.sh list events --store .memory
 ```
 
-## Failure Modes
+## When To Use It
 
-The skill asks the agent to classify feedback before changing memory:
-
-| Failure mode | Meaning |
-| --- | --- |
-| `missing_memory` | The agent should have remembered something but did not. |
-| `wrong_memory` | Stored memory is false. |
-| `stale_memory` | Memory was true before but is outdated now. |
-| `overgeneralized_memory` | A narrow signal became an overly broad rule. |
-| `underused_memory` | Relevant memory existed but was not used. |
-| `conflicting_memory` | Active memories disagree. |
-| `bad_schema` | The memory structure cannot represent what is needed. |
-| `bad_retrieval` | Retrieval/filtering/ranking failed. |
-| `bad_skill` | A skill workflow caused wrong capture or wrong use. |
-
-## When to Use
-
-Use Self-Evolving Memory when building agents that need continuity:
+Use this skill when you want an agent to improve across sessions:
 
 - personal assistants,
 - coding agents,
-- customer support bots,
-- monitoring agents,
+- monitoring bots,
+- customer support agents,
 - project copilots,
-- team coordination agents,
-- any agent that should improve from user corrections.
+- team coordination agents.
 
 Good prompts:
 
 ```text
+Remember this using the self-evolving memory workflow.
+I corrected you twice. Diagnose the memory issue.
 Review your memory and find stale facts.
-I corrected you twice; diagnose the memory failure.
 Turn this feedback into a memory patch.
 Update the skill so this memory bug does not happen again.
-Run a memory eval before applying this change.
 ```
 
-## Design Principles
+## How It Thinks About Memory Problems
 
-- **Evidence over vibes**: durable memory needs source evidence.
-- **Patch, do not overwrite**: memory changes should be reviewable.
-- **Prefer deprecation over deletion**: keep history unless there is a reason to remove it.
-- **Eval meaningful changes**: schema, retrieval, and skill patches need verification.
-- **Local-first**: memory should be inspectable with normal tools.
-- **Reversible by default**: bad memory updates should be easy to roll back.
+The skill teaches the agent to classify memory failures before changing memory:
 
-## Security and Privacy
+- missing memory,
+- wrong memory,
+- stale memory,
+- overgeneralized memory,
+- ignored memory,
+- conflicting memory,
+- bad storage structure,
+- bad retrieval behavior,
+- bad skill workflow.
 
-This project does not call external services. The helper script writes local files only.
+The point is not to create a complicated memory database. The point is to give the agent a better reflex after mistakes.
 
-Still, memory can contain sensitive data. Treat `.memory/` as private unless you have explicitly reviewed it.
+## Privacy
 
-Suggested `.gitignore`:
+This project writes local files only.
+
+Still, memory can contain private information. Do not commit `.memory/` unless you have reviewed it.
 
 ```gitignore
 .memory/
 ```
 
-## Status
+## Requirements
 
-Early, practical, and intentionally small.
-
-The current version focuses on file-backed memory operations and skill instructions. Future work may include richer eval runners, conflict reports, memory compaction, and retrieval-policy testing.
+- POSIX shell
+- `jq`
 
 ## License
 
