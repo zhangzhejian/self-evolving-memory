@@ -68,6 +68,25 @@ Feedback can point to different levels of the memory system:
 
 Self-Evolving Memory does not assume a universal best practice. It helps the memory system adapt to the agent's role, the user's preferences, and the situation.
 
+## Evaluation
+
+Early tests use MemoryArena-derived cases to check whether the workflow improves memory failure diagnosis. This is not an official MemoryArena leaderboard result.
+
+In a 10-case smoke test sampled from five MemoryArena subsets (`bundled_shopping`, `formal_reasoning_math`, `formal_reasoning_phys`, `group_travel_planner`, and `progressive_search`), agent outputs were scored with a simple MemoryOps rubric:
+
+- known failure taxonomy,
+- scope-specific memory,
+- schema or retrieval action,
+- workflow boundary action,
+- avoidance of naive single-fact updates.
+
+| Setup | Score |
+| --- | ---: |
+| Generic agent diagnosis, no skill | 38 / 50 |
+| With Self-Evolving Memory workflow | 49 / 50 |
+
+The skill did not make the model know more. Strong models already identify many scope problems. The improvement was diagnostic consistency: the agent more reliably mapped feedback to memory failure categories and separated memory-item updates from schema, retrieval, and workflow changes.
+
 ## What Is Included
 
 ```text
