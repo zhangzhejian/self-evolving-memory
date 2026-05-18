@@ -1,8 +1,8 @@
 # Self-Evolving Memory
 
-**A local-first skill for improving AI agent memory from user corrections.**
+**A local-first skill for helping AI agent memory evolve from user corrections.**
 
-Self-Evolving Memory gives long-running agents a disciplined way to update memory when they get something wrong. Instead of simply replying "got it", the agent diagnoses the memory issue, applies a deliberate update, and keeps track of why the change was made.
+Self-Evolving Memory gives long-running agents a disciplined way to improve memory when they get something wrong. Instead of simply replying "got it", the agent diagnoses the issue, applies a deliberate update, and keeps track of why the change was made.
 
 > Stop teaching your agent the same thing twice.
 
@@ -16,7 +16,9 @@ The agent should fetch the repository, install it into its skills directory, and
 
 ## Why This Exists
 
-Agent memory often fails in subtle ways. An agent may remember an old fact, apply a preference too broadly, ignore a relevant memory, or keep accumulating notes without knowing which ones are still useful.
+Agent memory is not one-size-fits-all. A coding agent, personal assistant, monitoring bot, and customer support agent should not remember things in the same way. Even within the same category, each user may need different memory habits, boundaries, and update rules.
+
+Memory also fails in subtle ways. An agent may remember an old fact, apply a preference too broadly, ignore a relevant memory, or keep accumulating notes without knowing which ones are still useful.
 
 Self-Evolving Memory is built for those moments. It helps agents treat corrections as opportunities to improve future behavior, not just patch the current response.
 
@@ -28,7 +30,9 @@ The skill teaches a simple memory-improvement loop:
 notice feedback -> diagnose the memory issue -> propose a change -> apply carefully -> record why
 ```
 
-This keeps memory updates:
+Most corrections should update memory. Some should adjust retrieval behavior or storage shape. Occasionally, if the feedback shows that the workflow itself is wrong, the agent may need a cautious skill update.
+
+This keeps memory evolution:
 
 - **intentional**: the agent identifies what kind of memory problem occurred,
 - **explainable**: each change has a reason,
@@ -52,6 +56,17 @@ With Self-Evolving Memory, the agent should preserve the actual improvement:
 - the reason for the update is recorded.
 
 The result is an agent that improves from correction instead of repeatedly making the same mistake.
+
+## What Can Evolve
+
+Feedback can point to different levels of the memory system:
+
+- a specific memory item was missing, wrong, or stale,
+- the agent retrieved the wrong memory or ignored the right one,
+- the memory structure does not fit the scenario,
+- the skill workflow is causing bad memory behavior.
+
+Self-Evolving Memory does not assume a universal best practice. It helps the memory system adapt to the agent's role, the user's preferences, and the situation.
 
 ## What Is Included
 
@@ -94,6 +109,10 @@ Users and developers should be able to understand why a memory changed.
 ### Not every note belongs in long-term memory
 
 The agent should distinguish durable preferences from temporary instructions, stale facts, and weak signals.
+
+### Memory practices should fit the scenario
+
+Different agents need different memory shapes. A coding agent may need project and repository context; a monitoring bot may need alert rules and delivery targets; a personal assistant may need preferences and boundaries.
 
 ### Local-first by default
 
