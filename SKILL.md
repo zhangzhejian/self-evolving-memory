@@ -1,6 +1,17 @@
 ---
 name: self-evolving-memory
+displayName: Self-Evolving Memory
 description: Design, operate, and improve an agent memory system that can diagnose memory failures from user feedback, propose versioned memory/schema/skill patches, validate them, and apply or roll them back. Use when the user asks about agent memory, long-term memory, working memory, self-improving memory, memory review, memory patches, memory evals, or evolving skills and storage from interaction feedback.
+categories: [automation, evaluation, coding]
+roles: [developer, researcher, operator, personal-user]
+outputs: [structured-data, analysis-report, action-plan]
+scenarios: [coding-dev, project-execution, learning-growth, personal-organization]
+runtimes: [workspace, code, chat]
+platforms: [codex, openclaw, claude-code]
+tags: [memory, agent-memory, self-improvement, evaluation, skills]
+version: 0.1.0
+author: Barry-Zhejian
+homepage: https://github.com/zhangzhejian/self-evolving-memory
 ---
 
 # Self-Evolving Memory
