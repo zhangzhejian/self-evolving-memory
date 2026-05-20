@@ -15,11 +15,13 @@ Use this guide after user feedback, failed task completion, or surprising behavi
    - Yes: `overgeneralized_memory`
 5. Did memory contain conflicting information?
    - Yes: `conflicting_memory`
-6. Was the right memory present but not used?
+6. Did a newer event, working note, long-term memory, retrieval rule, or skill instruction contradict another active layer?
+   - Yes: `cross_layer_inconsistency`
+7. Was the right memory present but not used?
    - Yes: `underused_memory` or `bad_retrieval`
-7. Could the memory not be represented cleanly?
+8. Could the memory not be represented cleanly?
    - Yes: `bad_schema`
-8. Did a skill workflow cause wrong capture, wrong use, or wrong output?
+9. Did a skill workflow cause wrong capture, wrong use, or wrong output?
    - Yes: `bad_skill`
 
 ## Failure Modes
@@ -59,6 +61,20 @@ Patch: `retrieval_policy_patch` or `skill_patch`; update `last_used_at` only aft
 Signal: two active memories disagree.
 
 Patch: ask the user if the conflict affects behavior. If not possible, preserve both with scope/time metadata and avoid decisive action.
+
+### cross_layer_inconsistency
+
+Signal: two memory layers are individually plausible but no longer agree. Examples:
+
+- a raw event or user correction invalidates a long-term rule, but the long-term rule remains active;
+- working memory says a workflow is disabled, but a cursor, schedule, retrieval trigger, or skill instruction still activates it;
+- a schema changes, but existing memories were not migrated or marked with old-schema scope;
+- project memory still follows an old global preference after the global preference was patched;
+- a skill patch changes capture behavior, but retrieval policy still ranks older memories first.
+
+Patch: create a `reconciliation_patch`. Identify every affected layer, then update, deprecate, migrate, merge, or scope items so the behavior-driving layers agree. If the inconsistency affects user-visible behavior, add an eval that proves the older layer no longer drives the wrong action.
+
+Use this when the problem is not just "two facts disagree", but "one layer changed and the rest of the memory system did not catch up".
 
 ### bad_schema
 

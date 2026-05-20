@@ -27,6 +27,7 @@ Common checks:
 - `precision`: did the agent avoid irrelevant memory?
 - `freshness`: did it avoid stale facts?
 - `conflict_handling`: did it ask or scope conflicts correctly?
+- `layer_consistency`: did it reconcile raw events, working state, long-term memory, meta rules, and retrieval behavior?
 - `evidence`: did it cite or preserve provenance when updating memory?
 - `behavior`: did the skill/output change actually solve the original failure?
 
@@ -35,6 +36,7 @@ Common checks:
 - `add_memory`: no eval required if user explicitly requested "remember this"; record evidence.
 - `update_memory`: verify the old content will no longer be used.
 - `deprecate_memory`: verify at least one replacement or reason exists.
+- `reconciliation_patch`: test that the changed layer and all affected behavior-driving layers now agree, and that the old layer no longer triggers the wrong action.
 - `retrieval_policy_patch`: run a case where the memory previously existed but was not used.
 - `schema_patch`: run migration dry-run or inspect a sample converted item.
 - `skill_patch`: test one prompt that previously failed and one unrelated prompt to avoid trigger overreach.

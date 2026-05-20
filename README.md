@@ -38,6 +38,7 @@ This keeps memory evolution:
 - **explainable**: each change has a reason,
 - **auditable**: updates are recorded instead of hidden,
 - **reversible**: bad memory changes can be inspected and corrected,
+- **consistent**: changes in raw events, long-term memory, retrieval rules, and workflow instructions can be reconciled,
 - **practical**: the workflow fits normal agent conversations.
 
 ## Example
@@ -63,10 +64,26 @@ Feedback can point to different levels of the memory system:
 
 - a specific memory item was missing, wrong, or stale,
 - the agent retrieved the wrong memory or ignored the right one,
+- different memory layers disagree after a correction or schema change,
 - the memory structure does not fit the scenario,
 - the skill workflow is causing bad memory behavior.
 
 Self-Evolving Memory does not assume a universal best practice. It helps the memory system adapt to the agent's role, the user's preferences, and the situation.
+
+## Cross-Layer Consistency
+
+Real agent memory is rarely one file or one database table. A durable behavior may be shaped by raw event logs, working memory, long-term preferences, project memory, retrieval policy, schedules, cursors, and skill instructions.
+
+This skill treats cross-layer inconsistency as a first-class failure mode. If a new correction updates one layer but an older layer can still drive the wrong behavior, the agent should create a reconciliation patch instead of adding another note.
+
+Examples:
+
+- a raw feedback event says a workflow is disabled, but an old trigger still runs it,
+- long-term memory is patched, but project memory still contains the old rule,
+- a schema evolves, but old memories are not migrated or deprecated,
+- retrieval policy keeps ranking a superseded memory above the corrected one.
+
+The key question is: did the new information only add knowledge, or should it change future behavior? If behavior changes, the affected layers need to be reconciled.
 
 ## Evaluation
 
@@ -133,6 +150,10 @@ The agent should distinguish durable preferences from temporary instructions, st
 
 Different agents need different memory shapes. A coding agent may need project and repository context; a monitoring bot may need alert rules and delivery targets; a personal assistant may need preferences and boundaries.
 
+### Memory layers should agree
+
+Raw logs, curated memory, retrieval policy, and skill workflows should not silently contradict each other. When one layer changes future behavior, the related layers should be reconciled.
+
 ### Local-first by default
 
 The current implementation uses local files. There is no server, daemon, telemetry, or external API.
@@ -154,6 +175,7 @@ Memory can still contain private information. Treat memory files as private unle
 - Stale memory cleanup
 - Memory evaluation examples
 - Skill-level self-improvement patterns
+- Cross-layer reconciliation examples and benchmark cases
 - Integrations with common agent memory stores
 
 ## Status

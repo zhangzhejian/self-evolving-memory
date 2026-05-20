@@ -8,7 +8,7 @@ Use these shapes as a baseline. Add fields only when they improve diagnosis, ret
 {
   "id": "mem_20260518_abcdef",
   "type": "preference|fact|project|relationship|policy|procedure|meta",
-  "scope": "global|project|room|task|skill",
+  "scope": "global|domain|mode|project|room|task|skill",
   "content": "Short durable statement.",
   "status": "active|deprecated|superseded|candidate",
   "confidence": 0.8,
@@ -51,9 +51,9 @@ Events are append-only.
 {
   "id": "patch_20260518_abcdef",
   "ts": "2026-05-18T00:00:00Z",
-  "kind": "add_memory|update_memory|deprecate_memory|merge_memories|schema_patch|retrieval_policy_patch|skill_patch|eval_patch",
+  "kind": "add_memory|update_memory|deprecate_memory|merge_memories|reconciliation_patch|schema_patch|retrieval_policy_patch|skill_patch|eval_patch",
   "target": "mem_123_or_file_path",
-  "failure_mode": "stale_memory",
+  "failure_mode": "stale_memory|cross_layer_inconsistency",
   "reason": "Why this patch is needed.",
   "evidence": ["event_20260518_abcdef"],
   "before": "Existing content or summary.",
@@ -67,9 +67,32 @@ Events are append-only.
 
 Rules:
 
-- Never apply `schema_patch`, `retrieval_policy_patch`, or `skill_patch` without a verification note.
+- Never apply `reconciliation_patch`, `schema_patch`, `retrieval_policy_patch`, or `skill_patch` without a verification note.
 - For `skill_patch`, `target` should be the relevant `SKILL.md` path and `after` should summarize the behavioral change, not contain a full file dump.
 - For destructive changes, prefer `deprecate_memory` over deletion.
+
+## Reconciliation Patch
+
+Use `reconciliation_patch` when a change in one layer must be propagated to other behavior-driving layers.
+
+```json
+{
+  "kind": "reconciliation_patch",
+  "failure_mode": "cross_layer_inconsistency",
+  "target": "events+long_term+meta",
+  "reason": "A newer correction disables a workflow, but an older long-term rule and retrieval trigger still activate it.",
+  "before": "events contain the correction; long_term/meta still contain the old active rule.",
+  "after": "deprecate the old rule, add the scoped replacement, and update retrieval policy to ignore the old trigger.",
+  "risk": "medium"
+}
+```
+
+Reconciliation checklist:
+
+- list the layers that disagree: `events`, `working`, `long_term`, `meta`, retrieval policy, skill workflow, schedules, cursors;
+- decide whether each affected item should be updated, deprecated, merged, migrated, or left with narrower scope;
+- preserve provenance from the event that caused the reconciliation;
+- add an eval when the old layer could still trigger user-visible behavior.
 
 ## Retrieval Policy Fields
 

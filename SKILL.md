@@ -9,7 +9,7 @@ scenarios: [coding-dev, project-execution, learning-growth, personal-organizatio
 runtimes: [workspace, code, chat]
 platforms: [codex, openclaw, claude-code]
 tags: [memory, agent-memory, self-improvement, evaluation, skills]
-version: 0.1.0
+version: 0.1.1
 author: Barry-Zhejian
 homepage: https://github.com/zhangzhejian/self-evolving-memory
 ---
@@ -36,6 +36,8 @@ Memory has four layers:
 - `long_term`: stable facts, preferences, relationships, project context.
 - `meta`: memory-system knowledge: bad memories, stale rules, failed retrievals, schema changes, skill problems.
 
+Layer changes must reconcile outward. When an event changes durable behavior, check whether `working`, `long_term`, `meta`, retrieval policy, or skill workflow also need updates. Do not leave a newer raw event contradicted by an older active long-term rule.
+
 ## When Feedback Arrives
 
 Do not immediately overwrite memory. Classify the issue first:
@@ -46,6 +48,7 @@ Do not immediately overwrite memory. Classify the issue first:
 - `overgeneralized_memory`: weak evidence was turned into a broad rule.
 - `underused_memory`: relevant memory existed but was not retrieved or used.
 - `conflicting_memory`: two memories disagree.
+- `cross_layer_inconsistency`: memory layers disagree or a change in one layer was not propagated to the layers that drive behavior.
 - `bad_schema`: storage lacks the field or structure needed.
 - `bad_retrieval`: retrieval/filtering/ranking failed.
 - `bad_skill`: a skill's trigger, workflow, or output caused the failure.
@@ -66,6 +69,7 @@ Patch types:
 - `update_memory`
 - `deprecate_memory`
 - `merge_memories`
+- `reconciliation_patch`
 - `schema_patch`
 - `retrieval_policy_patch`
 - `skill_patch`
@@ -115,9 +119,10 @@ The script intentionally does not infer correctness. It records structured evide
 - Keep stable memories short and scoped.
 - Store source evidence and confidence for every durable memory.
 - Prefer clarifying questions for conflicting memories.
+- After updating durable behavior, reconcile affected layers instead of only patching the local item.
 - Do not promote a one-off preference to long-term memory without explicit user wording or repeated evidence.
 - Update `meta/memory-system.md` after significant failures or schema changes.
-- Run or create eval cases before applying schema, retrieval, or skill patches.
+- Run or create eval cases before applying reconciliation, schema, retrieval, or skill patches.
 - For skill patches, edit the relevant `SKILL.md` only after identifying the memory failure mode it fixes.
 
 ## Detailed References
